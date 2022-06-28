@@ -48,3 +48,26 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           keys: frontend-build
+
+cleanup:
+  docker:
+    - image: cicleci/node:18.3.0
+  steps:
+    - run:
+        name: get old stack workflow id
+        command: /
+          # your code here
+          export OldWorkflowID="the id here"
+          export STACKS=[] #put the list of stacks here
+    - run:
+        name: Remove old stacks and files
+        command: /
+          if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+          then
+            # your code here
+          fi
+
+workflows:
+  default:
+    jobs:
+      - build-frontend
