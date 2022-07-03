@@ -142,7 +142,7 @@ jobs:
           name: create backend infrastructure
           command: |
             aws cloudformation deploy --template-file .circleci/files/backend.yml --stack-name "udapeople-backend-${CIRCLE_WORKFLOWID:0:7}" --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" --tags project=udapeople
-    deploy_frontend_infrastructure:
+  deploy_frontend_infrastructure:
       docker:
         - image: amazon/aws-cli
       steps:
@@ -187,3 +187,9 @@ workflows:
       - scan_backend:
           requires:
             - test_backend
+      - deploy_backend_infrastructure:
+          requires:
+            - scan_backend
+      - deploy_frontend_infrastructure:
+          requires:
+            - scan_frontend
