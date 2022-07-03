@@ -129,6 +129,29 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-scan
+  deploy_backend_infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install tar and gzip
+          command: |
+            yum -y install tar gzip
+      - run:
+          name: create backend infrastructure
+          command: |
+            aws cloudformation deploy --template-file .circleci/files/backend.yml --stack-name "udapeople-backend-${CIRCLE_WORKFLOWID:0:7}" --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" --tags project=udapeople
+    deploy_frontend_infrastructure:
+      docker:
+        - image: amazon/aws-cli
+      steps:
+        - checkout
+        - run:
+            name: create frontend infrastructure
+            command: |
+              aws cloudformation deploy --template-file .circleci/files/frontend.yml --stack-name "udapeople-frontend-${CIRCLE_WORKFLOWID:0:7}" --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" --tags project=udapeople
+
 # cleanup:
 #   docker:
 #     - image: cicleci/node:18.3.0
