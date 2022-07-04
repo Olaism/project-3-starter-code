@@ -1,5 +1,5 @@
 version: 2.1
-orb:
+orbs:
   aws-cli: circleci/aws-cli@3.1
 # commands:
 #   destroy-environment:
@@ -194,20 +194,20 @@ jobs:
 workflows:
   default:
     jobs:
-      - build_frontend
-      - build_backend
-      - test_frontend:
-          requires:
-            - build_frontend
-      - test_backend:
-          requires:
-            - build_backend
-      - scan_frontend:
-          requires:
-            - test_frontend
-      - scan_backend:
-          requires:
-            - test_backend
+      # - build_frontend
+      # - build_backend
+      # - test_frontend:
+      #     requires:
+      #       - build_frontend
+      # - test_backend:
+      #     requires:
+      #       - build_backend
+      # - scan_frontend:
+      #     requires:
+      #       - test_frontend
+      # - scan_backend:
+      #     requires:
+      #       - test_backend
       - deploy_backend_infrastructure:
           requires:
             - scan_backend
