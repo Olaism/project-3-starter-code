@@ -169,9 +169,8 @@ jobs:
           name: Add ec2 public IP to inventory.txt
           command: |
             aws ec2 describe-instances \
-            --filters "Name=tag: project, values=udapeople" \
-            --query 'Reservations[*].instances[*].PublicIpAddress' \
-            --output text >> inventory
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text >> .circleci/ansible/inventory.txt
 
 # cleanup:
 #   docker:
