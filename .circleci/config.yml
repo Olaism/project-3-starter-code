@@ -1,5 +1,6 @@
 version: 2.1
-
+orb:
+  aws-cli: circleci/aws-cli@3.1
 # commands:
 #   destroy-environment:
 #     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -142,7 +143,7 @@ jobs:
           name: create backend infrastructure
           command: |
             aws cloudformation deploy \
-            --template-file backend.yml \
+            --template-file .circleci/files/backend.yml \
             --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
@@ -155,10 +156,22 @@ jobs:
             name: create frontend infrastructure
             command: |
               aws cloudformation deploy \
-              --template-file frontend.yml \
+              --template-file .circleci/files/frontend.yml \
               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
+    add_ec2_public_ip_to_inventory:
+      docker:
+        - image: amazon/aws-cli
+      steps:
+        - checkout
+        - run:
+            name: Add ec2 public IP to inventory.txt
+            command: |
+              aws ec2 describe-instances \
+              --filters "Name=tag: project, values=udapeople" \
+              --query 'Reservations[*].instances[*].PublicIpAddress' \
+              --output text >> inventory
 
 # cleanup:
 #   docker:
@@ -201,3 +214,6 @@ workflows:
       - deploy_frontend_infrastructure:
           requires:
             - scan_frontend
+      - add_ec2_public_ip_to_inventory:
+          requires:
+            - deploy_backend_infrastructure
