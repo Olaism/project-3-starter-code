@@ -160,18 +160,18 @@ jobs:
               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
-    add_ec2_public_ip_to_inventory:
-      docker:
-        - image: amazon/aws-cli
-      steps:
-        - checkout
-        - run:
-            name: Add ec2 public IP to inventory.txt
-            command: |
-              aws ec2 describe-instances \
-              --filters "Name=tag: project, values=udapeople" \
-              --query 'Reservations[*].instances[*].PublicIpAddress' \
-              --output text >> inventory
+  add_ec2_public_ip_to_inventory:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Add ec2 public IP to inventory.txt
+          command: |
+            aws ec2 describe-instances \
+            --filters "Name=tag: project, values=udapeople" \
+            --query 'Reservations[*].instances[*].PublicIpAddress' \
+            --output text >> inventory
 
 # cleanup:
 #   docker:
