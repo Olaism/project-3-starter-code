@@ -208,10 +208,10 @@ workflows:
       # - scan_backend:
       #     requires:
       #       - test_backend
-      - deploy_backend_infrastructure:
+      - deploy_backend_infrastructure
           # requires:
           #   - scan_backend
-      - deploy_frontend_infrastructure:
+      - deploy_frontend_infrastructure
           # requires:
           #   - scan_frontend
       - add_ec2_public_ip_to_inventory:
