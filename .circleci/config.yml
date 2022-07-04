@@ -9,10 +9,10 @@ commands:
     steps:
       - run:
           name: Destroy environments
-          when: on_fail
           command: |
             # Your code here
             exit 1
+          when: on_fail
 
 #   revert-migration:
 #     description: Revert the last migration if successfully run in current workflow.
