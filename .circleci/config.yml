@@ -209,11 +209,11 @@ workflows:
       #     requires:
       #       - test_backend
       - deploy_backend_infrastructure:
-          requires:
-            - scan_backend
+          # requires:
+          #   - scan_backend
       - deploy_frontend_infrastructure:
-          requires:
-            - scan_frontend
+          # requires:
+          #   - scan_frontend
       - add_ec2_public_ip_to_inventory:
           requires:
             - deploy_backend_infrastructure
