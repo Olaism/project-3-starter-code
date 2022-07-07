@@ -68,6 +68,10 @@ jobs:
             --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
   configure_infrastructure:
@@ -77,10 +81,8 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["ba:3d:29:2d:0f:b9:54:46:c9:a0:20:59:b5:56:65:5b"]
-      - persist_to_workspace:
-          root: /tmp/workspace
-          paths:
-            - .circleci
+      - attach_workspace:
+          at: project/.circleci/ansible/inventory.txt
       - run:
           name: Install dependencies
           command: |
@@ -97,13 +99,13 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /tmp/workspace
+          at: project/.circleci/ansible/inventory.txt
       - run:
           name: Add ec2 public IP to inventory.txt
           command: |
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text >> .circleci/ansible/inventory.txt
+            --output text >> inventory.txt
 
   run_migrations:
     docker:
@@ -132,7 +134,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /tmp/workspace
+          at: project/.circleci/ansible/inventory.txt
       - run:
           name: Install dependencies
           command: |
@@ -165,7 +167,7 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["ba:3d:29:2d:0f:b9:54:46:c9:a0:20:59:b5:56:65:5b"]
       - attach_workspace:
-          at: /tmp/workspace
+          at: project/.circleci/ansible/inventory.txt
       - run:
           name: Install dependencies
           command: |
