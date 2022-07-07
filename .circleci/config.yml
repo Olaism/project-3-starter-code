@@ -1,37 +1,39 @@
 version: 2.1
 orbs:
   aws-cli: circleci/aws-cli@3.1
+  ansible-playbook: orbss/ansible-playbook@0.0.5
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-    # parameters:
-      # Add parameters here
+    parameters:
+      workflow_id:
+        type: string
     steps:
       - run:
           name: Destroy environments
           command: |
-            # Your code here
-            exit 1
+            echo "Destroying environments: << parameters.workflow_id >>"
+            aws cloudformation delete-stack --stack-name "udapeople-backend-<< parameters.workflow_id >>"
+            aws cloudformation delete-stack --stack-name "udapeople-backend-<< parameters.workflow_id >>"
           when: on_fail
 
-#   revert-migration:
-#     description: Revert the last migration if successfully run in current workflow.
-#     parameters:
-#       # Add parameter here
-#     steps:
-#       - run:
-#           name: Revert migrations
-#           # Add when this will run
-#           command: /
-#             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-#             SUCCESS = 1
-#             if(( $SUCCESS==1 )); 
-#             then
-#             #  cd ~/project/backend
-#             #  npm install
-#             #  Add revert code here. You can find this in the Getting Started section.
-#               exit 1
-#             fi
+  revert-migration:
+    description: Revert the last migration if successfully run in current workflow.
+    parameters:
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: /
+            SUCCESS=$(curl --insecure  https://kvdb.io/XQpLhkvs27UXjFxtRmWA2r/migration_<< parameters.workflow_id >>)
+            if(( $SUCCESS==1 )); 
+            then
+              cd ~/project/backend
+              npm install
+              npm run migration:revert
+            fi
 
 jobs:
   build_frontend:
@@ -130,90 +132,21 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-scan
-  deploy_backend_infrastructure:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run:
-          name: Install tar and gzip
-          command: |
-            yum -y install tar gzip
-      - run:
-          name: create backend infrastructure
-          command: |
-            aws cloudformation deploy \
-            --template-file .circleci/files/backend.yml \
-            --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
-            --tags project=udapeople
-      - destroy-environment
-  deploy_frontend_infrastructure:
-      docker:
-        - image: amazon/aws-cli
-      steps:
-        - checkout
-        - run:
-            name: create frontend infrastructure
-            command: |
-              aws cloudformation deploy \
-              --template-file .circleci/files/frontend.yml \
-              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
-              --tags project=udapeople
-  add_ec2_public_ip_to_inventory:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run:
-          name: Add ec2 public IP to inventory.txt
-          command: |
-            aws ec2 describe-instances \
-            --query 'Reservations[*].Instances[*].PublicIpAddress' \
-            --output text >> .circleci/ansible/inventory.txt
-
-# cleanup:
-#   docker:
-#     - image: cicleci/node:18.3.0
-#   steps:
-#     - run:
-#         name: get old stack workflow id
-#         command: /
-#           # your code here
-#           export OldWorkflowID="the id here"
-#           export STACKS=[] #put the list of stacks here
-#     - run:
-#         name: Remove old stacks and files
-#         command: /
-#           if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-#           then
-#             # your code here
-#           fi
 
 workflows:
   default:
     jobs:
-      # - build_frontend
-      # - build_backend
-      # - test_frontend:
-      #     requires:
-      #       - build_frontend
-      # - test_backend:
-      #     requires:
-      #       - build_backend
-      # - scan_frontend:
-      #     requires:
-      #       - test_frontend
-      # - scan_backend:
-      #     requires:
-      #       - test_backend
-      - deploy_backend_infrastructure
-          # requires:
-          #   - scan_backend
-      # - deploy_frontend_infrastructure
-          # requires:
-          #   - scan_frontend
-      - add_ec2_public_ip_to_inventory:
+      - build_frontend
+      - build_backend
+      - test_frontend:
           requires:
-            - deploy_backend_infrastructure
+            - build_frontend
+      - test_backend:
+          requires:
+            - build_backend
+      - scan_frontend:
+          requires:
+            - build_frontend
+      - scan_backend:
+          requires:
+            - build_backend
