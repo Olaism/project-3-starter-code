@@ -1,7 +1,7 @@
 version: 2.1
 orbs:
   aws-cli: circleci/aws-cli@3.1
-  ansible-playbook: circleci/ansible-playbook@0.0.5
+  ansible-playbook: orbss/ansible-playbook@0.0.5
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -246,12 +246,11 @@ cleanup:
           export OldWorkflowID=$(aws cloudformation \
           list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
           --no-paginate --output text)
-          echo OldWorkflowID: "${OldWorkflowID}"
+          echo OldWorkflowID "${OldWorkflowID}"
           echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
-          # export OldWorkflowID="the id here"
           export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
           --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
-          echo Stack names: "${STACKS[@]}"
+          echo Stack names "${STACKS[@]}"
     - run:
         name: Remove old stacks and files
         command: /
