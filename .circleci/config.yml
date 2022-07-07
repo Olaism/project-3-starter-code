@@ -61,6 +61,10 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install tar and gzip
+          command: |
+            yum -y install tar gzip
+      - run:
           name: create frontend infrastructure
           command: |
             aws cloudformation deploy \
