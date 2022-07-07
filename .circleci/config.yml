@@ -53,20 +53,23 @@ jobs:
             --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
-      - destroy-environment
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
   deploy_frontend_infrastructure:
-      docker:
-        - image: amazon/aws-cli
-      steps:
-        - checkout
-        - run:
-            name: create frontend infrastructure
-            command: |
-              aws cloudformation deploy \
-              --template-file .circleci/files/frontend.yml \
-              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
-              --tags project=udapeople
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: create frontend infrastructure
+          command: |
+            aws cloudformation deploy \
+            --template-file .circleci/files/frontend.yml \
+            --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+            --tags project=udapeople
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
   configure_infrastructure:
     docker:
       - image: python:3.7-alpine3.11
@@ -120,7 +123,8 @@ jobs:
             then
               curl https://kvdb.io/XQpLhkvs27UXjFxtRmWA2r/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
-            - revert-migration
+      - revert-migration:
+                workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   deploy_frontend:
     docker:
@@ -150,7 +154,8 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-      - revert-migration
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
                     
   deploy_backend:
     docker:
@@ -158,7 +163,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          - fingerprints: ["ba:3d:29:2d:0f:b9:54:46:c9:a0:20:59:b5:56:65:5b"]
+          fingerprints: ["ba:3d:29:2d:0f:b9:54:46:c9:a0:20:59:b5:56:65:5b"]
       - attach_workspace:
           at: /tmp/workspace
       - run:
@@ -178,7 +183,8 @@ jobs:
             echo "Contents of the inventory.txt file is -----"
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
-      - revert-migration
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   smoke_test:
     docker:
@@ -215,7 +221,8 @@ jobs:
             else
               return 0
             fi
-      - revert-migration
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   cloudfront_update:
     docker:
@@ -234,45 +241,58 @@ jobs:
             --stack-name InitialStackName \
             --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
-      - revert_migration
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
-cleanup:
-  docker:
-    - image: cicleci/node:18.3.0
-  steps:
-    - run:
-        name: get old stack workflow id
-        command: /
-          export OldWorkflowID=$(aws cloudformation \
-          list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-          --no-paginate --output text)
-          echo OldWorkflowID "${OldWorkflowID}"
-          echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
-          export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-          --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
-          echo Stack names "${STACKS[@]}"
-    - run:
-        name: Remove old stacks and files
-        command: /
-          if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
-          then
-            aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-            aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-            aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
-          fi
+  cleanup:
+    docker:
+      - image: cicleci/node:18.3.0
+    steps:
+      - run:
+          name: get old stack workflow id
+          command: /
+            export OldWorkflowID=$(aws cloudformation \
+            list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+            --no-paginate --output text)
+            echo OldWorkflowID "${OldWorkflowID}"
+            echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+            --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
+            echo Stack names "${STACKS[@]}"
+      - run:
+          name: Remove old stacks and files
+          command: /
+            if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+            then
+              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            fi
 
 workflows:
   default:
     jobs:
-      - deploy_backend_infrastructure
-      - deploy_frontend_infrastructure
-      - configure_infrastructure
-      - add_ec2_public_ip_to_inventory:
-          requires:
-            - deploy_backend_infrastructure
-      - run_migrations
-      - deploy_frontend
-      - deploy_backend
-      - smoke_test
-      - cloudfront_update
-      - cleanup
+      - deploy_backend_infrastructure:
+          requires: [test_backend, scan_backend]
+          filters:
+            branches:
+              only: [dev-branches]
+      - deploy_frontend_infrastructure:
+          requires: [test_frontend, scan_frontend]
+          filters:
+            branches:
+              only: [dev-branches]
+      - configure_infrastructure:
+          requires: [deploy_infrastructure]
+      - run_migrations:
+          requires: [configure_infrastructure]
+      - deploy_frontend:
+          requires: [run_migrations]
+      - deploy_backend:
+          requires: [run_migrations]
+      - smoke_test:
+          requires: [deploy_backend, deploy_frontend]
+      - cloudfront_update:
+          requires: [smoke_test]
+      - cleanup:
+          requires: [cloudfront_update]
