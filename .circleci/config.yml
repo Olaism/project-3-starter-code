@@ -272,18 +272,18 @@ jobs:
 workflows:
   default:
     jobs:
-      - deploy_backend_infrastructure:
+      - deploy_backend_infrastructure
           # requires: [test_backend, scan_backend]
           # filters:
           #   branches:
           #     only: [dev-branches]
-      - deploy_frontend_infrastructure:
+      - deploy_frontend_infrastructure
           # requires: [test_frontend, scan_frontend]
           # filters:
           #   branches:
           #     only: [dev-branches]
       - configure_infrastructure:
-          requires: [deploy_infrastructure]
+          requires: [deploy_backend_infrastructure, deploy_frontend_infrastructure]
       - run_migrations:
           requires: [configure_infrastructure]
       - deploy_frontend:
