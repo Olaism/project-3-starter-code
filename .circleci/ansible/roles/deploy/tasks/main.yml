@@ -1,0 +1,5 @@
+- name: "extract the zipped artifact into the ec2 instance"
+  unarchive:
+    src: ""
+    dest: ""
+    remote_src: yes
