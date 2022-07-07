@@ -75,17 +75,13 @@ jobs:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
   configure_infrastructure:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: ansible/ansible-playbook
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints: ["ba:3d:29:2d:0f:b9:54:46:c9:a0:20:59:b5:56:65:5b"]
       - attach_workspace:
           at: project/.circleci/ansible/inventory.txt
-      - run:
-          name: Install dependencies
-          command: |
-            pip install ansible
       - run:
           name: Configure server
           command: |
