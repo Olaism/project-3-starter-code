@@ -1,7 +1,6 @@
 version: 2.1
 orbs:
   aws-cli: circleci/aws-cli@3.1
-  ansible-playbook: orbss/ansible-playbook@0.0.5
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -75,13 +74,17 @@ jobs:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
   configure_infrastructure:
     docker:
-      - image: ansible/ansible-playbook
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints: ["ba:3d:29:2d:0f:b9:54:46:c9:a0:20:59:b5:56:65:5b"]
       - attach_workspace:
           at: project/.circleci/ansible/inventory.txt
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible
       - run:
           name: Configure server
           command: |
