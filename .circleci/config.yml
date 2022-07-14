@@ -35,6 +35,102 @@ commands:
             fi
 
 jobs:
+  build_frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Build frontend
+          command: |
+            cd frontend
+            npm install
+            npm run build
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: frontend-build
+  build_backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Build backend
+          command: |
+            cd backend
+            npm install
+            npm run build
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-build
+  test_frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-test]
+      - run:
+          name: Test frontend
+          command: |
+            cd frontend
+            npm install
+            npm run test
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: frontend-test
+  test_backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-test]
+      - run:
+          name: Test backend
+          command: |
+            cd backend
+            npm install
+            npm run test
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-test
+  scan_frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-scan]
+      - run:
+          command: |
+            cd frontend
+            npm install
+            # npm install oauth-sign@^0.9.0
+            npm audit fix --force
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: frontend-scan
+  scan_backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-scan]
+      - run:
+          command: |
+            cd backend
+            npm install
+            # npm install oauth-sign@^0.9.0
+            npm audit fix --force
+      - save_cache:
+          paths: [backend/node_modules]
+          key: backend-scan
   deploy_infrastructure:
     docker:
       - image: amazon/aws-cli
@@ -223,8 +319,8 @@ jobs:
           name: Update cloudfront distribution
           command: |
             aws cloudformation deploy \
-            --template-file .circleci/files/cloudfront.yml /
-            --stack-name InitialStackName \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name cloudfront-update \
             --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
       - destroy-environment:
@@ -258,22 +354,32 @@ jobs:
 workflows:
   default:
     jobs:
-      - deploy_infrastructure
-          # requires: [test_frontend, test_backend, scan_frontend, scan_backend]
-          # filters:
-          #   branches:
-          #     only: [test_feature_branch]
-      - configure_infrastructure:
-          requires: [deploy_infrastructure]
-      - run_migrations:
-          requires: [configure_infrastructure]
-      - deploy_frontend:
-          requires: [run_migrations]
-      - deploy_backend:
-          requires: [run_migrations]
-      - smoke_test:
-          requires: [deploy_backend, deploy_frontend]
-      - cloudfront_update:
-          requires: [smoke_test]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: [test-feature-branch]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test]
       - cleanup:
-          requires: [cloudfront_update]
+          requires: [cloudfront-update]
