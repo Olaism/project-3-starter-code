@@ -197,7 +197,6 @@ jobs:
           command: |
             cd backend
             npm install
-            mpm audit fix --force
             npm run migrations > migrations_dump.txt
       - run:
           name: Send migration results to memstash
