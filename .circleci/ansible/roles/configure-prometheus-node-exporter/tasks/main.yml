@@ -1,3 +1,24 @@
+---
+- name: "upgrade package"
+  apt:
+    name: "*"
+    state: latest
+
+# - name: "Install Python"
+#   yum:
+#     name: "python"
+      # state: latest
+
+- name: "Update apt cache and make sure to install nodejs, npm, pm2"
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  loop:
+    - nodejs
+    - npm
+    - pm2
+
 - name: "install node exporter."
   unarchive:
     src: https://github.com/prometheus/node_exporter/releases/download/v0.17.0/node_exporter-0.17.0.linux-amd64.tar.gz

@@ -139,7 +139,7 @@ jobs:
       - run:
           name: Install tar and gzip
           command: |
-            yum -y install tar gzip
+            apk add --update tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -161,11 +161,16 @@ jobs:
           command: |
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters 'Name=tag:Name, Values=backend-${CIRCLE_WORKFLOW_ID:0:7}' \
             --output text >> .circleci/ansible/inventory.txt
+      - run:
+          name: Check if inventory file has back-end ip
+          command: |
+            cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: ~/
+          root: .
           paths:
-            - project/.circleci/ansible/inventory.txt
+            - .circleci/ansible/inventory.txt
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
   configure_infrastructure:
@@ -176,11 +181,15 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["ba:3d:29:2d:0f:b9:54:46:c9:a0:20:59:b5:56:65:5b"]
       - attach_workspace:
-          at: project/.circleci/ansible/inventory.txt
+          at: .
       - run:
           name: Install dependencies
           command: |
             apk add --update ansible
+      - run:
+          name: Check the content of inventory.txt
+          command: |
+            cat .circleci/ansible/inventory.txt
       - run:
           name: Configure server
           command: |
@@ -200,10 +209,15 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            npm install  migrate
+            npm install
             npm run migrations > migrations_dump.txt
       - run:
-          name: Send migration results to memstash
+          name: Print content of migrations_dump
+          command: |
+            cd backend
+            cat migrations_dump.txt
+      - run:
+          name: Send migration results to kvdb
           command: |
             if grep -q "has been executed successfully" ~/project/backend/migrations_dump.txt
             then
@@ -218,16 +232,15 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: project/.circleci/ansible/inventory.txt
+          at: .
       - run:
           name: Install dependencies
           command: |
-            yum -y install tar gzip
-            sudo apt install nodejs npm
+            apt add --update nodejs ansible tar npm gzip
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters 'Name=tag:Name, Values=backend-${CIRCLE_WORKFLOW_ID:0:7}' --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL=${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -242,6 +255,8 @@ jobs:
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migration:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
                     
   deploy_backend:
     docker:
@@ -251,12 +266,11 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["ba:3d:29:2d:0f:b9:54:46:c9:a0:20:59:b5:56:65:5b"]
       - attach_workspace:
-          at: project/.circleci/ansible/inventory.txt
+          at: .
       - run:
           name: Install dependencies
           command: |
-            yum -y install tar gzip
-            sudo apt install nodejs npm
+            apt add --update ansible nodejs npm tar gzip
       - run:
           name: Deploy backend
           command: |
@@ -270,6 +284,8 @@ jobs:
             cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migration:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   smoke_test:
