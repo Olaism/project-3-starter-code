@@ -139,7 +139,7 @@ jobs:
       - run:
           name: Install tar and gzip
           command: |
-            sudo apt-get install tar gzip
+            yum -y install tar gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -185,7 +185,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apt add --update ansible
+            apk add --update ansible
       - run:
           name: Check the content of inventory.txt
           command: |
@@ -236,7 +236,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apt add --update nodejs ansible tar npm gzip
+            apk add --update nodejs ansible tar npm gzip
       - run:
           name: Get backend url
           command: |
@@ -260,7 +260,7 @@ jobs:
                     
   deploy_backend:
     docker:
-      - image: ansible/ansible-playbook
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - add_ssh_keys:
@@ -270,7 +270,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apt add --update ansible nodejs npm tar gzip
+            apk add --update ansible nodejs npm tar gzip
       - run:
           name: Deploy backend
           command: |
@@ -334,7 +334,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            # your code here
+            apk add --update tar gzip
       - run:
           name: Update cloudfront distribution
           command: |
