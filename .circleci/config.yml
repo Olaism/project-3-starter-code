@@ -2,6 +2,23 @@ version: 2.1
 orbs:
   aws-cli: circleci/aws-cli@3.1
 commands:
+  install-awscli:
+    description: Install AWS CLI v2 package
+    steps:
+      - run:
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+
+  install-nodejs:
+    description: Install nodejs
+    steps:
+      - run:
+          command: |
+            curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+            sudo apt install -y nodejs
+
   install-ansible:
     description: Install ansible
     steps:
@@ -208,10 +225,7 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      # - run:
-      #     name: Install dependencies
-      #     command: |
-      #       npm install -g migrate
+      - install-awscli
       - run:
           name: Run migrations
           command: |
@@ -228,7 +242,7 @@ jobs:
           command: |
             if grep -q "has been executed successfully" ~/project/backend/migrations_dump.txt
             then
-              curl https://kvdb.io/FkrEwFsmXPdQvdEUKGaT4m/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl --insecure https://kvdb.io/FkrEwFsmXPdQvdEUKGaT4m/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
