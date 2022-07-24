@@ -251,15 +251,16 @@ jobs:
 
   deploy_frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: cimg/base:stable
     steps:
       - checkout
+      - add_ssh_keys:
+          fingerprints: ["ba:3d:29:2d:0f:b9:54:46:c9:a0:20:59:b5:56:65:5b"]
       - attach_workspace:
           at: .
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update nodejs tar npm gzip
+      - install-nodejs
+      - install-ansible
+      - install-awscli
       - run:
           name: Get backend url
           command: |
@@ -283,17 +284,16 @@ jobs:
                     
   deploy_backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/base:stable
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints: ["ba:3d:29:2d:0f:b9:54:46:c9:a0:20:59:b5:56:65:5b"]
       - attach_workspace:
           at: .
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update ansible nodejs npm tar gzip
+      - install-nodejs
+      - install-ansible
+      - install-awscli
       - run:
           name: Deploy backend
           command: |
