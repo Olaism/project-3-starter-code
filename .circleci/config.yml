@@ -208,10 +208,10 @@ jobs:
       - image: circleci/node:13.8.0
     steps:
       - checkout
-      - run:
-          name: Install dependencies
-          run: |
-            npm install -g migrate
+      # - run:
+      #     name: Install dependencies
+      #     command: |
+      #       npm install -g migrate
       - run:
           name: Run migrations
           command: |
