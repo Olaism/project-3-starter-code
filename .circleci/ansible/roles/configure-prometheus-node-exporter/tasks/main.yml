@@ -9,7 +9,7 @@
 #     name: "python"
       # state: latest
 
-- name: "Update apt cache and make sure to install nodejs, npm, pm2"
+- name: "Update apt cache and make sure to install nodejs, npm"
   apt:
     name: "{{ item }}"
     state: latest
@@ -17,7 +17,11 @@
   loop:
     - nodejs
     - npm
-    - pm2
+
+- name: "Install pm2 using npm"
+  become: true
+  shell: |
+    npm install pm2 -g
 
 - name: "install node exporter."
   unarchive:
