@@ -17,6 +17,8 @@ commands:
     parameters:
       workflow_id:
         type: string
+    docker:
+      - image: amazon/aws-cli
     steps:
       - run:
           name: Destroy environments
@@ -228,7 +230,7 @@ jobs:
           command: |
             if grep -q "has been executed successfully" ~/project/backend/migrations_dump.txt
             then
-              curl https://kvdb.io/XQpLhkvs27UXjFxtRmWA2r/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl https://kvdb.io/FkrEwFsmXPdQvdEUKGaT4m/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
