@@ -62,102 +62,102 @@ commands:
             fi
 
 jobs:
-  build_frontend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [frontend-build]
-      - run:
-          name: Build frontend
-          command: |
-            cd frontend
-            npm install
-            npm run build
-      - save_cache:
-          paths: [frontend/node_modules]
-          key: frontend-build
-  build_backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: Build backend
-          command: |
-            cd backend
-            npm install
-            npm run build
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
-  test_frontend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [frontend-test]
-      - run:
-          name: Test frontend
-          command: |
-            cd frontend
-            npm install
-            npm run test
-      - save_cache:
-          paths: [frontend/node_modules]
-          key: frontend-test
-  test_backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-test]
-      - run:
-          name: Test backend
-          command: |
-            cd backend
-            npm install
-            npm run test
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-test
-  scan_frontend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [frontend-scan]
-      - run:
-          command: |
-            cd frontend
-            npm install
-            # npm install oauth-sign@^0.9.0
-            npm audit fix
-      - save_cache:
-          paths: [frontend/node_modules]
-          key: frontend-scan
-  scan_backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-scan]
-      - run:
-          command: |
-            cd backend
-            npm install
-            # npm install oauth-sign@^0.9.0
-            npm audit fix --force
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-scan
+  # build_frontend:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys: [frontend-build]
+  #     - run:
+  #         name: Build frontend
+  #         command: |
+  #           cd frontend
+  #           npm install
+  #           npm run build
+  #     - save_cache:
+  #         paths: [frontend/node_modules]
+  #         key: frontend-build
+  # build_backend:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys: [backend-build]
+  #     - run:
+  #         name: Build backend
+  #         command: |
+  #           cd backend
+  #           npm install
+  #           npm run build
+  #     - save_cache:
+  #         paths: [backend/node_modules]
+  #         key: backend-build
+  # test_frontend:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys: [frontend-test]
+  #     - run:
+  #         name: Test frontend
+  #         command: |
+  #           cd frontend
+  #           npm install
+  #           npm run test
+  #     - save_cache:
+  #         paths: [frontend/node_modules]
+  #         key: frontend-test
+  # test_backend:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys: [backend-test]
+  #     - run:
+  #         name: Test backend
+  #         command: |
+  #           cd backend
+  #           npm install
+  #           npm run test
+  #     - save_cache:
+  #         paths: [backend/node_modules]
+  #         key: backend-test
+  # scan_frontend:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys: [frontend-scan]
+  #     - run:
+  #         command: |
+  #           cd frontend
+  #           npm install
+  #           # npm install oauth-sign@^0.9.0
+  #           npm audit fix
+  #     - save_cache:
+  #         paths: [frontend/node_modules]
+  #         key: frontend-scan
+  # scan_backend:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys: [backend-scan]
+  #     - run:
+  #         command: |
+  #           cd backend
+  #           npm install
+  #           # npm install oauth-sign@^0.9.0
+  #           npm audit fix --force
+  #     - save_cache:
+  #         paths: [backend/node_modules]
+  #         key: backend-scan
   deploy_infrastructure:
     docker:
       - image: amazon/aws-cli
@@ -412,18 +412,18 @@ jobs:
 workflows:
   default:
     jobs:
-      - build_frontend
-      - build_backend
-      - test_frontend:
-          requires: [build_frontend]
-      - test_backend:
-          requires: [build_backend]
-      - scan_backend:
-          requires: [build_backend]
-      - scan_frontend:
-          requires: [build_frontend]
-      - deploy_infrastructure:
-          requires: [test_frontend, test_backend, scan_backend]
+      # - build_frontend
+      # - build_backend
+      # - test_frontend:
+      #     requires: [build_frontend]
+      # - test_backend:
+      #     requires: [build_backend]
+      # - scan_backend:
+      #     requires: [build_backend]
+      # - scan_frontend:
+      #     requires: [build_frontend]
+      - deploy_infrastructure
+          # requires: [test_frontend, test_backend, scan_backend]
           # filters:
           #   branches:
           #     only: [test-feature-branch]
