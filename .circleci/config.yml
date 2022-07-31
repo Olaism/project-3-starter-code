@@ -334,6 +334,8 @@ jobs:
           command: |
             BACKEND_PUBLIC_IP=$(aws ec2 describe-instances --filters Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7} --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             export API_URL=http://${BACKEND_PUBLIC_IP}:3000
+            echo ${BACKEND_PUBLIC_IP}
+            echo backend-${CIRCLE_WORKFLOW_ID:0:7}
             echo ${API_URL}
             if curl -s $API_URL/api/status | grep "ok"
             then
@@ -352,8 +354,8 @@ jobs:
             else
               exit 1
             fi
-      - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - destroy-environment:
+      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   cloudfront_update:
     docker:
