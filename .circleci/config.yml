@@ -350,7 +350,7 @@ jobs:
             echo ${URL}
             if curl -s ${URL} | grep "Welcome"
             then
-              exit 0
+              exit 1
             else
               exit 1
             fi
@@ -361,9 +361,10 @@ jobs:
 
   cloudfront_update:
     docker:
-      - image: amazon:aws-cli
+      - image: cimg/base:stable
     steps:
       - checkout
+      - install-awscli
       - run:
           name: Install dep / save old workflow id to kvdb.io
           command: |
