@@ -387,6 +387,8 @@ jobs:
     steps:
       - checkout
       - install-awscli
+      - attach_workspace:
+          at: .
       - run:
           name: get old stack workflow id
           command: |
@@ -394,7 +396,7 @@ jobs:
             --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
             echo Stack names "${STACKS[@]}"
             export OldWorkflowID=$(curl --insecure https://kvdb.io/FkrEwFsmXPdQvdEUKGaT4m/old_workflow_id)
-            echo Old Workflow ID: $OldWorkflowID
+            echo Old Workflow ID: ${OldWorkflowID}
       - run:
           name: Remove old stacks and files
           command: |
