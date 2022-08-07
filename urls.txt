@@ -1,4 +1,4 @@
 [URL01]
 https:://github.com/Olaism
 [URL02]
-Public url to s3 bucket
+http://udapeople-e7baca0.s3-website-us-east-1.amazonaws.com
