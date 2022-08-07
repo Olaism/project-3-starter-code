@@ -233,7 +233,7 @@ jobs:
             npm install
       - run:
           name: Run Migrations
-          command: !
+          command: |
             cd backend
             npm run migrations > migrations_dump.txt
       - run:
