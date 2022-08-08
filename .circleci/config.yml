@@ -230,6 +230,9 @@ jobs:
           name: Install
           command: |
             cd backend
+            rm -rf package-lock.json
+            rm -rf node_modules
+            npm cache clean --force
             npm install
             npm run migrations > migrations_dump.txt
       - run:
