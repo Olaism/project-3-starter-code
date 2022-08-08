@@ -226,6 +226,7 @@ jobs:
     steps:
       - checkout
       - install-awscli
+      - install-nodejs
       - run:
           name: Install
           command: |
