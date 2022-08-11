@@ -222,18 +222,14 @@ jobs:
 
   run_migrations:
     docker:
-      - image: cimg/base:stable
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - install-awscli
-      - install-nodejs
       - run:
-          name: Install
+          name: Run migrations
           command: |
             cd backend
-            rm -rf package-lock.json
-            rm -rf node_modules
-            npm cache clean --force
             npm install
             npm run migrations > migrations_dump.txt
       - run:
@@ -412,6 +408,8 @@ jobs:
               aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
               aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
               aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            else
+              echo "____________Cannot cleanup_________________"
             fi
 
 workflows:
