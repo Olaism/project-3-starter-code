@@ -47,10 +47,3 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub backend-${ID}
-
-Outputs:
-  WorkflowID:
-    Value: !Sub ${ID}
-    Description: Backend
-    Export:
-      Name: WorkflowID
